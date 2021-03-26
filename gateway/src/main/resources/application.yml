@@ -6,8 +6,8 @@ spring:
   cloud:
     nacos:
       discovery:
-        server-addr: 127.0.0.1:8848
+        server-addr: localhost:8848
     gateway:
       discovery:
         locator:
-          enabled: true
+          enabled: true  # 允许根据注册中心服务名称自动配置路由

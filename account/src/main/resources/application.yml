@@ -1,20 +1,16 @@
 server:
   port: 8889
 spring:
+  profiles:
+    active: dev # 数据源从dev中读取
   application:
     name: account
   cloud:
     nacos:
       discovery:
-        server-addr: 127.0.0.1:8848
-  datasource:
-    url: jdbc:mysql://localhost:3306/oauth2?useUnicode=true&characterEncoding=utf-8&serverTimezone=UTC
-    username: root
-    password: 1023root
-    driver-class-name: com.mysql.cj.jdbc.Driver
-
+        server-addr: localhost:8848
 mybatis:
   mapper-locations: classpath:/mapping/*.xml
   type-aliases-package: com.riiyn.entity
-  configuration:
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+#  configuration:
+#    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
