@@ -16,11 +16,11 @@ import java.util.List;
 public class UserInfo extends User {
     
     private final Integer id;
-    private final List<Integer> roleIds;
+    private final List<String> roles;
     
-    public UserInfo(String username, String password, boolean enabled, boolean accountNonExpired, boolean credentialsNonExpired, boolean accountNonLocked, Collection<? extends GrantedAuthority> authorities, Integer id, List<Integer> roleIds) {
+    public UserInfo(String username, String password, boolean enabled, boolean accountNonExpired, boolean credentialsNonExpired, boolean accountNonLocked, Collection<? extends GrantedAuthority> authorities, Integer id, List<String> roles) {
         super(username, password, enabled, accountNonExpired, credentialsNonExpired, accountNonLocked, authorities);
         this.id = id;
-        this.roleIds = roleIds;
+        this.roles = roles;
     }
 }

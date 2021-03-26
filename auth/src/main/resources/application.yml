@@ -1,9 +1,13 @@
 server:
   port: 8899
 spring:
+  profiles:
+    active: dev
   application:
     name: auth
   cloud:
     nacos:
       discovery:
         server-addr: localhost:8848
+  main:
+    allow-bean-definition-overriding: true
