@@ -13,10 +13,11 @@ public class Oauth2Constant {
      * 客户端表名称
      */
     public static final String CLIENT_TABLE = "oauth_client_details";
+    private static final String CLIENT_SECRET_PREFIX = "'{noop}'";
     /**
      * 客户端基本信息
      */
-    public static final String CLIENT_DETAILS_FIELDS = "client_id, CONCAT('{noop}',client_secret) as client_secret, resource_ids, " +
+    public static final String CLIENT_DETAILS_FIELDS = "client_id, CONCAT(" + CLIENT_SECRET_PREFIX + ",client_secret) as client_secret, resource_ids, " +
             "scope, authorized_grant_types, web_server_redirect_uri, authorities, access_token_validity, refresh_token_validity, " +
             "additional_information, autoapprove";
     /**

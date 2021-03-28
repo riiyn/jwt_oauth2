@@ -4,6 +4,7 @@ import com.riiyn.common.Oauth2Constant;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.oauth2.common.exceptions.InvalidClientException;
 import org.springframework.security.oauth2.provider.ClientDetails;
@@ -13,7 +14,6 @@ import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
 import javax.sql.DataSource;
-import java.util.Set;
 
 /**
  * @author: riiyn
@@ -31,11 +31,14 @@ public class ClientDetailsServiceImpl extends JdbcClientDetailsService {
     @Resource
     private RedisTemplate<String, Object> redisTemplate;
     
+    private static String cacheClientKey;
+    
     public ClientDetailsServiceImpl(DataSource dataSource) {
         super(dataSource);
     }
     
-    @Bean
+    @Bean("clientService")
+    @Primary
     public ClientDetailsServiceImpl clientDetailsService(){
         ClientDetailsServiceImpl clientDetailsService = new ClientDetailsServiceImpl(this.dataSource);
         clientDetailsService.setRedisTemplate(this.redisTemplate);
@@ -50,19 +53,15 @@ public class ClientDetailsServiceImpl extends JdbcClientDetailsService {
      */
     @Override
     public ClientDetails loadClientByClientId(String clientId) throws InvalidClientException {
+        cacheClientKey = this.cacheClientKey(clientId);
         // 从redis查询client信息
-        ClientDetails clientDetails = (ClientDetails) redisTemplate.opsForValue().get(clientId);
+        ClientDetails clientDetails = (ClientDetails) redisTemplate.opsForValue().get(cacheClientKey);
         log.info("从 redis 缓存中查询客户端信息，clientId：{}，clientDetails：{}", clientId, clientDetails);
         // 如果redis中没查到，就从数据库查询，并同步至redis
         if (ObjectUtils.isEmpty(clientDetails)) {
             log.info("redis 中没有此客户端信息，继续从数据库中查找");
             clientDetails = syncCacheClient(clientId);
         }
-        // 设置认证类型参数
-        final Set<String> authorizedGrantTypes = clientDetails.getAuthorizedGrantTypes();
-        authorizedGrantTypes.add(Oauth2Constant.PASSWORD);
-        authorizedGrantTypes.add(Oauth2Constant.REFRESH_TOKEN);
-        log.info("设置客户端认证类型参数 authorizedGrantTypes：{}", authorizedGrantTypes);
         return clientDetails;
     }
     
@@ -78,11 +77,11 @@ public class ClientDetailsServiceImpl extends JdbcClientDetailsService {
             clientDetails = super.loadClientByClientId(clientId);
             if (!ObjectUtils.isEmpty(clientDetails)){
                 // 如果数据库存在该客户端信息，就同步到redis，下次直接从redis获取
-                redisTemplate.opsForValue().set(cacheClientKey(clientId), clientDetails);
+                redisTemplate.opsForValue().set(cacheClientKey, clientDetails);
                 log.info("将 clientId：{} 的客户端信息 clientDetails：{} 同步至 redis 缓存，key 为：{}",
-                        clientId, clientDetails, cacheClientKey(clientId));
+                        clientId, clientDetails, cacheClientKey);
             }
-        } catch (InvalidClientException e) {
+        } catch (Exception e) {
             log.error("Exception for clientId：{}, message：{}", clientId, e.getMessage());
         }
         return clientDetails;

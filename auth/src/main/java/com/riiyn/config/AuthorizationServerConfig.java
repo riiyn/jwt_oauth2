@@ -1,10 +1,11 @@
 package com.riiyn.config;
 
+import com.riiyn.common.JdkSerializationStrategy;
 import com.riiyn.common.Oauth2Constant;
 import com.riiyn.entity.UserInfo;
 import com.riiyn.service.ClientDetailsServiceImpl;
 import com.riiyn.service.UserDetailsServiceImpl;
-import lombok.RequiredArgsConstructor;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,6 +18,7 @@ import org.springframework.security.oauth2.config.annotation.web.configuration.A
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerEndpointsConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerSecurityConfigurer;
+import org.springframework.security.oauth2.provider.token.AuthorizationServerTokenServices;
 import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
 import org.springframework.security.oauth2.provider.token.TokenEnhancer;
 import org.springframework.security.oauth2.provider.token.TokenEnhancerChain;
@@ -37,7 +39,7 @@ import java.util.Map;
 @Slf4j
 @Configuration
 @EnableAuthorizationServer
-@RequiredArgsConstructor
+@AllArgsConstructor
 public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdapter {
     
 //    @Autowired
@@ -46,7 +48,7 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
     private final AuthenticationManager authenticationManager;
     private final UserDetailsServiceImpl userDetailsService;
     private final RedisConnectionFactory redisConnectionFactory;
-    private final ClientDetailsServiceImpl clientDetailsService;
+    private final ClientDetailsServiceImpl clientService;
     
     /**
      * token存到redis中
@@ -54,7 +56,10 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
      */
     @Bean
     public RedisTokenStore redisTokenStore(){
-        return new RedisTokenStore(redisConnectionFactory);
+        final RedisTokenStore redisTokenStore = new RedisTokenStore(redisConnectionFactory);
+        // 如果自定义了用户信息，这里用自定义的序列化策略，否则报错payload无法反序列化
+        redisTokenStore.setSerializationStrategy(new JdkSerializationStrategy());
+        return redisTokenStore;
     }
     
     /**
@@ -63,35 +68,44 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
      */
     @Override
     public void configure(AuthorizationServerEndpointsConfigurer endpoints) {
+        log.info("》》》授权服务端点配置：{}", endpoints);
+        endpoints
+                // authenticationManager需要直接通过endpoints配置，否则报错
+                .authenticationManager(authenticationManager)
+                // 配置token服务
+                .tokenServices(customTokenServices())
+                // 配置自定义的用户信息处理服务
+                .userDetailsService(userDetailsService);
+    }
+    
+    /**
+     * 自定义 AuthorizationServerTokenServices
+     * @return tokenServices
+     */
+    private AuthorizationServerTokenServices customTokenServices(){
+        log.info("自定义 AuthorizationServerTokenServices...");
+        DefaultTokenServices tokenServices = new DefaultTokenServices();
         
         TokenEnhancerChain tokenEnhancerChain = new TokenEnhancerChain();
-        log.info("将 jwt 内容增强信息、jwt-token 转换器添加进 token 增强链");
         tokenEnhancerChain.setTokenEnhancers(Arrays.asList(tokenEnhancer(), jwtAccessTokenConverter()));
-        
-        DefaultTokenServices tokenServices = new DefaultTokenServices();
-        log.info("设置客户端信息到token服务");
-        tokenServices.setClientDetailsService(clientDetailsService);
-        log.info("设置token增强链到token服务");
+        log.info("1.配置token增强链：{}", tokenEnhancerChain);
         tokenServices.setTokenEnhancer(tokenEnhancerChain);
+    
+        log.info("2.配置自定义客户端信息处理服务 {}", clientService);
+        tokenServices.setClientDetailsService(clientService);
+    
+        log.info("3.配置token存储器：redisTokenStore");
+        tokenServices.setTokenStore(redisTokenStore());
         
-        endpoints
-                // 配置认证管理器
-                .authenticationManager(authenticationManager)
-                // 使用jwt-token转换器
-                .accessTokenConverter(jwtAccessTokenConverter())
-                // 配置jwt内容增强
-//                .tokenEnhancer(tokenEnhancerChain)
-                // 配置token服务
-                .tokenServices(tokenServices)
-                // 配置token存储位置
-                .tokenStore(redisTokenStore())
-                
-                // 配置自定义的用户信息处理服务
-                .userDetailsService(userDetailsService)
-                // refresh_token有两种使用方式：重复使用(true)、非重复使用(false)，默认为true
-                //      1.重复使用：access_token过期刷新时， refresh token过期时间未改变，仍以初次生成的时间为准
-                //      2.非重复使用：access_token过期刷新时， refresh_token过期时间延续，在refresh_token有效期内刷新而无需失效再次登录
-                .reuseRefreshTokens(false);
+        log.info("4.配置refresh_token使用策略；{}", false);
+        // refresh_token有两种使用方式：重复使用(true)、非重复使用(false)，默认为true
+        //      1.重复使用：access_token过期刷新时， refresh token过期时间未改变，仍以初次生成的时间为准
+        //      2.非重复使用：access_token过期刷新时， refresh_token过期时间延续，
+        //        在refresh_token有效期内刷新而无需失效再次登录
+        tokenServices.setReuseRefreshToken(false);
+        
+        log.info("AuthorizationServerTokenServices 配置完成，返回：{}", tokenServices);
+        return tokenServices;
     }
     
     /**
@@ -101,10 +115,11 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
      */
     @Override
     public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
+        log.info("》》》客户端详情服务配置：{}", clients);
         // 设置从数据库查询客户端信息的SQL
-        clientDetailsService.setSelectClientDetailsSql(Oauth2Constant.SELECT_CLIENT_DETAILS_SQL);
-        clientDetailsService.setFindClientDetailsSql(Oauth2Constant.FIND_CLIENT_DETAILS_SQL);
-        clients.withClientDetails(clientDetailsService);
+        clientService.setSelectClientDetailsSql(Oauth2Constant.SELECT_CLIENT_DETAILS_SQL);
+        clientService.setFindClientDetailsSql(Oauth2Constant.FIND_CLIENT_DETAILS_SQL);
+        clients.withClientDetails(clientService);
         
         // 客户端配置，也可以在yaml中配置
 //        clients.inMemory()
@@ -135,6 +150,7 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
      */
     @Override
     public void configure(AuthorizationServerSecurityConfigurer security){
+        log.info("》》》授权服务安全配置：{}", security);
         security
                 // 允许表单认证请求
                 .allowFormAuthenticationForClients()
@@ -146,7 +162,7 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
     
     /**
      * jwt内容增强
-     * @return
+     * @return oAuth2AccessToken
      */
     @Bean
     public TokenEnhancer tokenEnhancer(){
@@ -155,6 +171,7 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
             final UserInfo userInfo = (UserInfo) oAuth2Authentication.getUserAuthentication().getPrincipal();
             map.put(Oauth2Constant.USER_ROLES, userInfo.getRoles());
             ((DefaultOAuth2AccessToken)oAuth2AccessToken).setAdditionalInformation(map);
+            log.info("》》》JWT内容增强配置：{}", oAuth2AccessToken);
             return oAuth2AccessToken;
         };
     }
@@ -167,6 +184,7 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
     public JwtAccessTokenConverter jwtAccessTokenConverter(){
         JwtAccessTokenConverter jwtAccessTokenConverter = new JwtAccessTokenConverter();
         jwtAccessTokenConverter.setKeyPair(keyPair());
+        log.info("》》》token签名算法配置：{}", jwtAccessTokenConverter);
         return jwtAccessTokenConverter;
     }
     

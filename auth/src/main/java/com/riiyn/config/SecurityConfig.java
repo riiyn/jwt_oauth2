@@ -2,7 +2,6 @@ package com.riiyn.config;
 
 import com.riiyn.service.UserDetailsServiceImpl;
 import lombok.AllArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -22,7 +21,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @AllArgsConstructor
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
     
-    @Autowired
     private final UserDetailsServiceImpl userDetailsService;
     
     @Override

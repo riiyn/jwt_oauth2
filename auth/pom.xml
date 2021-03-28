@@ -29,7 +29,10 @@
             <artifactId>spring-security-oauth2-autoconfigure</artifactId>
             <version>2.2.1.RELEASE</version>
         </dependency>
-
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
         <!-- 把token存到redis中 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
