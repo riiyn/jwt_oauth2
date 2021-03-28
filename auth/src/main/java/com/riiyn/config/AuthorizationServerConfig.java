@@ -96,8 +96,11 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
     
         log.info("3.配置token存储器：redisTokenStore");
         tokenServices.setTokenStore(redisTokenStore());
+    
+        log.info("4.配置是否支持refresh_token；{}", true);
+        tokenServices.setSupportRefreshToken(true);
         
-        log.info("4.配置refresh_token使用策略；{}", false);
+        log.info("5.配置refresh_token使用策略；{}", false);
         // refresh_token有两种使用方式：重复使用(true)、非重复使用(false)，默认为true
         //      1.重复使用：access_token过期刷新时， refresh token过期时间未改变，仍以初次生成的时间为准
         //      2.非重复使用：access_token过期刷新时， refresh_token过期时间延续，
