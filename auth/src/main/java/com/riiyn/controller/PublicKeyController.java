@@ -1,6 +1,5 @@
 package com.riiyn.controller;
 
-import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,6 +26,6 @@ public class PublicKeyController {
     public Map<String, Object> getPublicKey(){
         RSAPublicKey rsaPublicKey = (RSAPublicKey) keyPair.getPublic();
         final RSAKey rsaKey = new RSAKey.Builder(rsaPublicKey).build();
-        return new JWKSet(rsaKey).toJSONObject();
+        return rsaKey.toJSONObject();
     }
 }

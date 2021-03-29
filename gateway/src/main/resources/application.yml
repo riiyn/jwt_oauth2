@@ -11,3 +11,19 @@ spring:
       discovery:
         locator:
           enabled: true  # 允许根据注册中心服务名称自动配置路由
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            # 允许携带认证信息
+            # 允许跨域的源(网站域名/ip)，设置*为全部
+            # 允许跨域请求里的head字段，设置*为全部
+            # 允许跨域的method， 默认为GET和OPTIONS，设置*为全部
+            # 跨域允许的有效期
+            allow-credentials: true
+            allowed-origins: "*"
+            allowed-headers: "*"
+            allowed-methods: "*"
+  redis:
+    database: 0
+    host: localhost
+    port: 6379

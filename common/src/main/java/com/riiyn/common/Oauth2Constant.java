@@ -4,8 +4,8 @@ import org.springframework.stereotype.Component;
 
 /**
  * @author: riiyn
- * @date: 2021/3/26 23:00
- * @description: 认证常用常量
+ * @date: 2021/3/29 21:47
+ * @description: 认证常用相关常量
  */
 @Component
 public class Oauth2Constant {
@@ -32,6 +32,10 @@ public class Oauth2Constant {
      * 根据客户端id查找
      */
     public static final String SELECT_CLIENT_DETAILS_SQL = BASE_CLIENT_DETAILS_SQL + " where client_id = ?";
+    /**
+     * 认证类型参数
+     */
+    public static final String GRANT_TYPE = "grant_type";
     /**
      * 认证类型参数：刷新token
      */
@@ -60,4 +64,18 @@ public class Oauth2Constant {
     public static final Integer ENABLE = 0;
     
     public static final Integer DISABLE = 1;
+    
+    public static final String JWT_PAYLOAD_KEY = "payload";
+    
+    public static final String JWT_ATI_KEY = "ati";
+    
+    public static final String JWT_JTI_KEY = "jti";
+    
+    public static final String JWT_EXP_KEY = "exp";
+    
+    public static final String TOKEN_BLACKLIST_PREFIX = "auth:token:blacklist:";
+    
+    public static final String AUTHORIZATION = "Authorization";
+    
+    public static final String TOKEN_TYPE = "Bearer ";
 }
