@@ -6,6 +6,7 @@ import com.riiyn.entity.UserInfo;
 import com.riiyn.feign.UserFeignClient;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -40,8 +41,8 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             throw new UsernameNotFoundException("用户 " + s + " 不存在");
         }
         if (Oauth2Constant.DISABLE.equals(user.getStatus())) {
-            log.info("该用户：{} 账户已停用", s);
-            throw new UsernameNotFoundException("该用户: " + s + " 账户已停用");
+            log.error("该用户：{} 账户已停用", s);
+            throw new DisabledException("该用户: " + s + " 账户已停用");
         }
         
         return getUserDetails(user);

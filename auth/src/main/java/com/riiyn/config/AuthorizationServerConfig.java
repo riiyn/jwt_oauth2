@@ -1,5 +1,6 @@
 package com.riiyn.config;
 
+import com.alibaba.nacos.client.utils.JSONUtils;
 import com.riiyn.common.JdkSerializationStrategy;
 import com.riiyn.common.Oauth2Constant;
 import com.riiyn.entity.UserInfo;
@@ -11,13 +12,18 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.oauth2.common.DefaultOAuth2AccessToken;
 import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerConfigurerAdapter;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerEndpointsConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerSecurityConfigurer;
+import org.springframework.security.oauth2.provider.endpoint.AuthorizationEndpoint;
 import org.springframework.security.oauth2.provider.token.AuthorizationServerTokenServices;
 import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
 import org.springframework.security.oauth2.provider.token.TokenEnhancer;
@@ -25,7 +31,12 @@ import org.springframework.security.oauth2.provider.token.TokenEnhancerChain;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.store.KeyStoreKeyFactory;
 import org.springframework.security.oauth2.provider.token.store.redis.RedisTokenStore;
+import org.springframework.security.web.AuthenticationEntryPoint;
 
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.security.KeyPair;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -160,7 +171,24 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
                 // spel表达式 访问公钥端点（/auth/token）需要认证
                 .tokenKeyAccess("isAuthenticated()")
                 // spel表达式 访问令牌解析端点（/auth/check_token）需要认证
-                .checkTokenAccess("isAuthenticated()");
+                .checkTokenAccess("isAuthenticated()")
+                .authenticationEntryPoint(authenticationEntryPoint());
+    }
+
+    /**
+     * 自定义客户端异常认证响应
+     * @return
+     */
+    @Bean
+    public AuthenticationEntryPoint authenticationEntryPoint(){
+        return (httpServletRequest, httpServletResponse, e) -> {
+            httpServletResponse.setStatus(HttpStatus.OK.value());
+            httpServletResponse.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+            httpServletResponse.setHeader("Access-Control-Allow-Origin", "*");
+            httpServletResponse.setHeader("Cache-Control", "no-cache");
+            httpServletResponse.getWriter().print(JSONUtils.serializeObject(e.getMessage()));
+            httpServletResponse.getWriter().flush();
+        };
     }
     
     /**
