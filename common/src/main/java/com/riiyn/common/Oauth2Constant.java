@@ -78,4 +78,17 @@ public class Oauth2Constant {
     public static final String AUTHORIZATION = "Authorization";
     
     public static final String TOKEN_TYPE = "Bearer ";
+    
+    public static final String DEFAULT_SUCCESS_MESSAGE = "处理成功";
+    
+    public static final String DEFAULT_NULL_MESSAGE = "数据为空";
+    
+    public static final String DEFAULT_FAIL_MESSAGE = "处理失败";
+    
+    /**
+     * json类型报文，UTF-8字符集
+     */
+    public static final String JSON_UTF8 = "application/json;charset=UTF-8";
+    
+    public static final String REDIS_TOKEN_KEY_PREFIX = "auth:";
 }
