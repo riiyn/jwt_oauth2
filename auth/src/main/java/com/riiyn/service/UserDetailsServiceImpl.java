@@ -5,7 +5,7 @@ import com.riiyn.entity.User;
 import com.riiyn.entity.UserInfo;
 import com.riiyn.feign.UserFeignClient;
 import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
@@ -24,7 +24,7 @@ import java.util.List;
  * @date: 2021/3/24 12:37
  * @description: 自定义用户认证和授权
  */
-@Slf4j
+@Log4j2
 @Service
 @AllArgsConstructor
 public class UserDetailsServiceImpl implements UserDetailsService {

@@ -2,7 +2,7 @@ package com.riiyn.controller;
 
 import com.riiyn.common.Oauth2Constant;
 import com.riiyn.util.AuthUtil;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.provider.endpoint.TokenEndpoint;
@@ -21,7 +21,7 @@ import java.util.Map;
  */
 //@RestController
 @RequestMapping("/oauth")
-@Slf4j
+@Log4j2
 public class AuthController {
     
     @Resource

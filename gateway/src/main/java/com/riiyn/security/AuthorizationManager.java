@@ -7,7 +7,7 @@ import com.nimbusds.jwt.util.DateUtils;
 import com.riiyn.common.Oauth2Constant;
 import com.riiyn.feign.AuthFeign;
 import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -30,7 +30,7 @@ import java.util.Map;
  * @description: 鉴权管理
  */
 @Component
-@Slf4j
+@Log4j2
 @AllArgsConstructor
 public class AuthorizationManager implements ReactiveAuthorizationManager<AuthorizationContext> {
     

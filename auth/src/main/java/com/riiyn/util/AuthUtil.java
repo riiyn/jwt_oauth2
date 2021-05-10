@@ -3,7 +3,7 @@ package com.riiyn.util;
 import com.nimbusds.jose.JWSObject;
 import com.nimbusds.jose.util.JSONObjectUtils;
 import com.riiyn.common.Oauth2Constant;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.data.redis.core.RedisTemplate;
 
 import java.text.ParseException;
@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit;
  * @date: 2021/3/29 21:26
  * @description: 认证相关工具类
  */
-@Slf4j
+@Log4j2
 public class AuthUtil {
     /**
      * 将token加入黑名单

@@ -2,7 +2,7 @@ package com.riiyn.service;
 
 import com.riiyn.common.Oauth2Constant;
 import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -22,7 +22,7 @@ import javax.sql.DataSource;
  */
 @Service
 @Setter
-@Slf4j
+@Log4j2
 public class ClientDetailsServiceImpl extends JdbcClientDetailsService {
     
     @Resource
